@@ -1,0 +1,59 @@
+{
+  "min_packer_version": "0.12.0",
+  "variables": {
+    "aws_region": "us-east-1",
+    "nomad_version": "0.7.0",
+    "consul_module_version": "v0.0.5",
+    "consul_version": "1.0.0"
+  },
+  "builders": [
+  {
+    "name": "amazon-linux-ami",
+    "ami_name": "nomad-consul-amazon-linux-{{isotime | clean_ami_name}}",
+    "ami_description": "An Amazon Linux AMI that has Nomad and Consul installed.",
+    "instance_type": "t2.large",
+    "region": "{{user `aws_region`}}",
+    "vpc_id": "vpc-c3e144a6",
+    "subnet_id": "subnet-9b6783c2",
+    "security_group_id": "sg-991818e6",
+    "ssh_keypair_name": "smanjee",
+    "ssh_private_key_file": "/Users/sunilemanjee/.ssh/smanjee.pem",
+    "associate_public_ip_address": true,
+    "type": "amazon-ebs",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "architecture": "x86_64",
+        "name": "*amzn-ami-hvm-*",
+        "block-device-mapping.volume-type": "gp2",
+        "root-device-type": "ebs"
+      },
+      "owners": ["amazon"],
+      "most_recent": true
+    },
+    "ssh_username": "ec2-user"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sudo yum -y update",
+      "sudo yum -y install git",
+      "git clone https://github.com/sunileman/terraform-aws-nomad.git /tmp/terraform-aws-nomad",
+      "/tmp/terraform-aws-nomad/modules/install-nomad/install-nomad --version {{user `nomad_version`}}"
+    ]
+  },{
+    "type": "shell",
+    "inline": [
+      "git clone https://github.com/hashicorp/terraform-aws-consul.git /tmp/terraform-aws-consul",
+      "/tmp/terraform-aws-consul/modules/install-consul/install-consul --version {{user `consul_version`}}",
+      "/tmp/terraform-aws-consul/modules/install-dnsmasq/install-dnsmasq"
+    ]
+  },{
+    "type": "shell",
+    "inline": [
+      "sudo yum install -y docker",
+      "sudo service docker start",
+      "sudo usermod -a -G docker ec2-user"
+    ]
+  }]
+}

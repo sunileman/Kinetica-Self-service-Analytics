@@ -1,0 +1,131 @@
+{
+  "min_packer_version": "0.12.0",
+  "variables": {
+    "aws_region": "us-east-1",
+    "nomad_version": "0.7.0",
+    "consul_module_version": "v0.0.5",
+    "consul_version": "1.0.0"
+  },
+  "builders": [
+  {
+    "name": "kinetica-gpu-centos-ami",
+    "ami_name": "nomad-consul-centos-gpu-centos-{{isotime | clean_ami_name}}",
+    "ami_description": "A CentOS AMI that has Nomad and Consul installed with nvidia driver",
+    "instance_type": "p2.xlarge",
+    "region": "{{user `aws_region`}}",
+    "vpc_id": "vpc-c3e144a6",
+    "subnet_id": "subnet-9b6783c2",
+    "security_group_id": "sg-991818e6",
+    "ssh_keypair_name": "smanjee",
+    "ssh_private_key_file": "/Users/sunilemanjee/.ssh/smanjee.pem",
+    "associate_public_ip_address": true,
+    "type": "amazon-ebs",
+    "launch_block_device_mappings": [{
+      "device_name": "/dev/sda1",
+      "volume_size": 500,
+      "volume_type": "gp2",
+      "delete_on_termination": true
+    }],
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "name": "*CentOS Linux 7 x86_64 HVM*"
+      },
+      "owners" : ["679593333241"],
+      "most_recent": true
+    },
+    "ssh_username": "centos"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sudo yum -y update",
+      "sudo yum -y install git",
+      "sudo yum -y install wget",
+      "sudo yum -y install epel-release",
+      "sudo yum -y install python-pip"
+    ]
+  },{
+    "type": "shell",
+    "inline": [
+      "git clone https://github.com/sunileman/terraform-aws-nomad.git /tmp/terraform-aws-nomad",
+      "/tmp/terraform-aws-nomad/modules/install-nomad/install-nomad --version {{user `nomad_version`}}"
+    ]
+  }
+  ,{
+    "type": "shell",
+    "inline": [
+      "wget https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip -P /tmp",
+      "sudo unzip /tmp/consul_1.0.0_linux_amd64.zip -d /usr/local/bin"
+    ]
+  },{
+    "type": "shell",
+    "inline": [
+      "wget http://us.download.nvidia.com/XFree86/Linux-x86_64/384.66/NVIDIA-Linux-x86_64-384.66.run -P /tmp",
+      "sudo yum install -y gcc kernel-devel-$(uname -r)",
+      "sudo yum -y install kernel-devel kernel-headers gcc dkms acpid",
+      "sudo cp /etc/sysconfig/grub /etc/sysconfig/grub.bak",
+      "sudo sed -i 's/console=ttyS0,115200/console=ttyS0,115200 rd.driver.blacklist=grub.nouveau/g' /etc/sysconfig/grub",
+      "sudo grub2-mkconfig -o /boot/grub2/grub.cfg",
+      "sudo mv /boot/initramfs-$(uname -r).img /boot/initramfs-$(uname -r)-nouveau.img",
+      "sudo dracut /boot/initramfs-$(uname -r).img $(uname -r)",
+      "sudo init 3",
+      "sudo reboot"
+    ],
+    "expect_disconnect" : true,
+    "pause_before": "10s"
+    },{
+    "type": "shell",
+    "inline": [
+      "echo -e blacklist nouveau | sudo tee --append /etc/modprobe.d/blacklist-nouveau.conf",
+      "echo -e options nouveau modeset=0 | sudo tee --append /etc/modprobe.d/blacklist-nouveau.conf",
+      "echo -e \"blacklist vga16fb\" | sudo tee --append /etc/modprobe.d/blacklist.conf",
+      "echo -e \"blacklist nouveau\" | sudo tee --append /etc/modprobe.d/blacklist.conf",
+      "echo -e \"blacklist rivafb\" | sudo tee --append /etc/modprobe.d/blacklist.conf",
+      "echo -e \"blacklist nvidiafb\" | sudo tee --append /etc/modprobe.d/blacklist.conf",
+      "echo -e \"blacklist rivatv\" | sudo tee --append /etc/modprobe.d/blacklist.conf",
+      "sudo /bin/bash /tmp/NVIDIA-Linux-x86_64-384.66.run -silent",
+      "nvidia-smi",
+      "sudo reboot"
+    ],
+    "expect_disconnect" : true,
+    "pause_before": "10s"
+    },{
+    "type": "shell",
+    "inline": [
+      "nvidia-smi",
+      "curl -s -L https://nvidia.github.io/nvidia-docker/centos7/x86_64/nvidia-docker.repo | sudo tee /etc/yum.repos.d/nvidia-docker.repo",
+      "sudo yum install -y yum-utils device-mapper-persistent-data lvm2",
+      "sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
+      "sudo yum -y install docker-ce-17.09.0.ce",
+      "sudo systemctl start docker",
+      "sudo gpasswd -a ${USER} docker",
+      "sudo service docker restart",
+      "sudo reboot"
+    ],
+    "expect_disconnect" : true,
+    "pause_before": "10s"
+  },{
+  "type": "shell",
+  "inline": [
+    "nvidia-smi",
+    "sudo systemctl start docker",
+    "sudo systemctl enable docker.service",
+    "sudo yum -y install nvidia-docker2",
+    "sudo pkill -SIGHUP dockerd",
+    "docker run --runtime=nvidia --rm nvidia/cuda nvidia-smi",
+    "sudo mkdir /home/centos/glibs",
+    "sudo cp /lib64/libGLdispatch* /home/centos/glibs/",
+    "sudo chown centos /home/centos/glibs",
+    "sudo wget https://s3.amazonaws.com/kinetica-se/Docker-GPU/run.sh -P /home/centos",
+    "sudo chown centos /home/centos/run.sh",
+    "sudo wget https://s3.amazonaws.com/kinetica-se/Docker-GPU/start.sh -P /home/centos",
+    "sudo chown centos /home/centos/start.sh",
+    "sudo wget https://s3.amazonaws.com/kinetica-se/Docker-GPU/Dockerfile -P /home/centos",
+    "sudo chown centos /home/centos/Dockerfile"
+  ],
+  "expect_disconnect" : true,
+  "pause_before": "10s"
+  }
+  ]
+}
