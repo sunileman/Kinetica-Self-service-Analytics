@@ -3,18 +3,11 @@
 # Define these secrets as environment variables
 # ---------------------------------------------------------------------------------------------------------------------
 
-# AWS_ACCESS_KEY_ID
-# AWS_SECRET_ACCESS_KEY
-
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These parameters have reasonable defaults.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "ami_id" {
-  description = "The ID of the AMI to run in the cluster. This should be an AMI built from the Packer template under examples/consul-ami/consul.json. To keep this example simple, we run the same AMI on both server and client nodes, but in real-world usage, your client nodes would also run your apps. If the default value is used, Terraform will look up the latest AMI build automatically."
-  default     = "ami-c72ea3bd"
-}
 
 variable "aws_region" {
   description = "The AWS region to deploy into (e.g. us-east-1)."
@@ -51,14 +44,21 @@ variable "ssh_key_name" {
   default     = "smanjee"
 }
 
+variable "key_path" {
+  description = "Path to EC2 Key Pair that can be used to SSH to the EC2 Instances in this cluster"
+  default = "/home/ec2-user/consul/terraform/aws/smanjee.pem"
+}
+
 variable "vpc_id" {
   description = "The ID of the VPC in which the nodes will be deployed.  Uses default VPC if not supplied."
   default     = "vpc-c3e144a6"
 }
-variable "subnet_id" {
-  description = "The ID of the VPC in which the nodes will be deployed.  Uses default VPC if not supplied."
-  default     = "subnet-9b6783c2"
+
+variable "subnets" {
+  description = "The subnets within VPC in which the nodes will be deployed"
+  default= {"0"="subnet-9b6783c2","1"="subnet-aa1ae0dd","2"="subnet-60031905"}
 }
+
 variable "aws_access_key" {
   description = "AWS access key"
   default     = ""
@@ -69,10 +69,6 @@ variable "aws_secret_key" {
 }
 variable "nomad_consul_ami" {
   description = "AWS nomad ami"
-  default     = "ami-c72ea3bd"
-}
-variable "consul_server_ami" {
-  description = "AWS consul ami"
   default     = "ami-c72ea3bd"
 }
 variable "gpu_ami" {

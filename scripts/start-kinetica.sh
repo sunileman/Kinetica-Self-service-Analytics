@@ -6,8 +6,7 @@
 set -e
 
 # Send the log output from this script to user-data.log, syslog, and the console
-# From: https://alestic.com/2010/12/ec2-user-data-output/
-#exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+exec &>> /tmp/start-kinetica.log
 
 # These variables are passed in via Terraform template interplation
 #sudo service docker start
@@ -44,7 +43,7 @@ nvidia-docker build -t kinetica/centos6.1 /home/centos
 docker run --runtime=nvidia -it -d -p 8080:8080 -p 8088:8088 -p 9292:9292 -p 9191-9199:9191-9199 --rm kinetica/centos6.1:latest
 
 #update kinetica consul def with correct service dns
-sed -i "s/127.0.0.1/$public_hostname/g" "payload.json"
+sed -i "s/127.0.0.1/$public_hostname/g" "/home/centos/kinetica.json"
 
 #register kinetica service with consul
 curl --request PUT --data @/home/centos/kinetica.json  http://localhost:8500/v1/agent/service/register

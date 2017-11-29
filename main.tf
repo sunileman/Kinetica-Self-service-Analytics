@@ -19,7 +19,7 @@ module "consul-servers" {
 
   root_volume_size = 50
 
-  ami_id    = "${var.consul_server_ami}"
+  ami_id    = "${var.nomad_consul_ami}"
   user_data = "${data.template_file.consul_server.rendered}"
 
   vpc_id     = "${var.vpc_id}"
@@ -49,7 +49,7 @@ module "nomad-servers" {
 
   root_volume_size = 50
 
-  ami_id    = "${var.consul_server_ami}"
+  ami_id    = "${var.nomad_consul_ami}"
   user_data = "${data.template_file.nomad_server.rendered}"
 
 
@@ -81,7 +81,7 @@ module "spark" {
 
   root_volume_size = 300
 
-  ami_id    = "${var.consul_server_ami}"
+  ami_id    = "${var.nomad_consul_ami}"
   user_data = "${data.template_file.spark_client.rendered}"
 
 

@@ -14,3 +14,9 @@ sudo service docker start
 sudo /opt/consul/bin/run-consul --client --cluster-tag-key ${cluster_tag_key} --cluster-tag-value ${cluster_tag_value}
 sleep 100s
 sudo /opt/nomad/bin/run-nomad --server --num-servers ${num_of_servers}
+sleep 100s
+wget https://s3.amazonaws.com/kinetica-se/nomad/nifi.nomad -P /tmp
+wget https://s3.amazonaws.com/kinetica-se/nomad/spark.nomad -P /tmp
+sudo /usr/local/bin/nomad run /tmp/nifi.nomad
+sleep 200
+sudo /usr/local/bin/nomad run /tmp/spark.nomad
