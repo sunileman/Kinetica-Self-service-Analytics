@@ -29,3 +29,10 @@ h.	nomad_consul_ami
     b.	Downloads all modules referenced insides main.tf
 7.	Run terraform apply
     a.	Must be run inside directory which has main.tf
+
+Wait a few minutes for provising.  Once all has been provisioned, you will see:
+
+3 consul server nodes
+1 nomad server nodes
+1 node with Kinetica docker instance
+1 node with dockerized spark and nifi instances

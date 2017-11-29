@@ -66,12 +66,12 @@ module "nomad-servers" {
 # ---------------------------------------------------------------------------------------------------------------------
 # DEPLOY THE CONSUL CLIENT FOR SPARK
 # ---------------------------------------------------------------------------------------------------------------------
-module "spark" {
+module "spark-nifi" {
   # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
   source = "github.com/hashicorp/terraform-aws-consul.git//modules/consul-cluster?ref=v0.0.5"
 
-  cluster_name  = "spark-instance"
+  cluster_name  = "spark-nifi-instance"
   cluster_size  = 1
   instance_type = "t2.xlarge"
 
@@ -180,7 +180,7 @@ resource "aws_security_group_rule" "spark_all_traffic" {
   protocol        = "all"
   cidr_blocks     = ["0.0.0.0/0"]
 
-  security_group_id = "${module.spark.security_group_id}"
+  security_group_id = "${module.spark-nifi.security_group_id}"
 }
 resource "aws_security_group_rule" "consul_clients_all_traffic" {
   type            = "ingress"
