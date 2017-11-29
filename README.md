@@ -6,10 +6,14 @@ Building Kinetica as a Service using packer/terraform/consul/nomad
 1.	Download & Install Packer
 2.	Download & Install Terraform
 3.	Download this repo
-4.	Create GPU AMI
-    4a. Run packer build nomad-consul-gpu-centos.json
-5.	Create Consul/Nomad AMI
-    5a. Run packer build nomad-consul.json
+4.	Create GPU AMI. Run
+```
+packer build nomad-consul-gpu-centos.json
+```
+5.	Create Consul/Nomad AMI. Run
+```
+packer build nomad-consul.json
+```
 6.	Update the following variables in variables.tf to match your aws environment.  All the variable definitions are available in variables.tf
 ```
 a.	aws_region
