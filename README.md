@@ -1,7 +1,7 @@
 # Kinetica-as-a-Service
 Building Kinetica as a Service using packer/terraform/consul/nomad
 
-##Setup
+## Setup
 
 1.	Download & Install Packer
 2.	Download & Install Terraform
