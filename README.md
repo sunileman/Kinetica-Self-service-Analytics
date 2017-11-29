@@ -11,7 +11,7 @@ Building Kinetica as a Service using packer/terraform/consul/nomad
 5.	Create Consul/Nomad AMI
     5a. Run packer build nomad-consul.json
 6.	Update the following variables in variables.tf to match your aws environment.  All the variable definitions are available in variables.tf
-
+```
 a.	aws_region
 b.	ssh_key_name
     i.	This will allow ssh’ing into provision nodes
@@ -29,10 +29,11 @@ h.	nomad_consul_ami
     b.	Downloads all modules referenced insides main.tf
 7.	Run terraform apply
     a.	Must be run inside directory which has main.tf
-
+```
 Wait a few minutes for provising.  Once all has been provisioned, you will see:
-
+```
 3 consul server nodes
 1 nomad server nodes
 1 node with Kinetica docker instance
 1 node with dockerized spark and nifi instances
+```
