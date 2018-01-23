@@ -1,4 +1,4 @@
-# Kinetica-as-a-Service
+# Kinetica Self-service Analytics
 Building Kinetica as a Service using packer/terraform/consul/nomad
 
 ## Setup
