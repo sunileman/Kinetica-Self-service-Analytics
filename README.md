@@ -1,5 +1,5 @@
 # Kinetica Self-service Analytics
-Building Kinetica as a Service using packer/terraform/consul/nomad
+Building Kinetica Self-service Analytics using packer/terraform/consul/nomad
 
 ## Setup
 
